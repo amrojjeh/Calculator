@@ -21,7 +21,7 @@ public class SimilarTerms
     {
         Term result = new Term(0);
         for (Term term : terms)
-            result.add(term);
+            result = result.add(term);
         return result;
     }
 }

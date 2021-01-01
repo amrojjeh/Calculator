@@ -4,51 +4,26 @@ import org.jetbrains.annotations.NotNull;
 
 public class Number
 {
-    public double num;
+    public final double num;
 
-    public Number(double x)
-    {
-        num = x;
-    }
+    public Number(double x) { num = x; }
 
-    public void add(@NotNull Number n)
-    {
-        num += n.num;
-    }
+    public Number add(@NotNull Number n) { return new Number(num + n.num); }
 
-    public void subtract(Number n)
-    {
-        num -= n.num;
-    }
+    public Number subtract(Number n) { return new Number(num - n.num); }
 
-    public void divide(Number n)
-    {
-        num /= n.num;
-    }
+    public Number divide(Number n) { return new Number(num / n.num); }
 
-    public void multiply(Number n)
-    {
-        num *= n.num;
-    }
+    public Number multiply(Number n) { return new Number(num * n.num); }
 
-    public boolean isZero()
-    {
-        return num == 0;
-    }
+    public Number abs() { return new Number(Math.abs(num)); }
 
-    public boolean isPositive()
-    {
-        return num >= 0;
-    }
+    public boolean isZero() { return num == 0; }
 
-    public boolean isNegative()
-    {
-        return num < 0;
-    }
+    public boolean isPositive() { return num >= 0; }
+
+    public boolean isNegative() { return num < 0; }
 
     @Override
-    public String toString()
-    {
-        return num + "";
-    }
+    public String toString() { return num + ""; }
 }

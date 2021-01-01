@@ -2,25 +2,30 @@ package io.github.dinglydo.evaluator;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class Term
 {
-    public Number coefficient;
+    public final Number coefficient;
 
     // If vars is empty, it's assumed to be x^0
-    public LinkedHashSet<Variable> vars;
+    public final Set<Variable> vars;
 
-    public Term(@NotNull Number number)
+    public Term(@NotNull Number number, @NotNull Set<Variable> variables)
     {
         coefficient = number;
-        vars = new LinkedHashSet<>();
+        vars = Collections.unmodifiableSet(variables);
     }
 
-    public Term(double n)
+    public Term(double n, char... variables)
     {
         coefficient = new Number(n);
-        vars = new LinkedHashSet<>();
+        Variable[] temp = new Variable[variables.length];
+        for (int i = 0; i < temp.length; ++i)
+            temp[i] = new Variable(variables[i]);
+        this.vars = Set.of(temp);
     }
 
     /**
@@ -30,22 +35,36 @@ public class Term
      */
     public Term add(Term term)
     {
-        if (coefficient.isZero()) vars = term.vars;
-        coefficient.add(term.coefficient);
-        return this;
+        if (coefficient.isZero()) return term;
+        return new Term(coefficient.add(term.coefficient), vars);
     }
 
-    public Term multiply(Number n)
+    public Term multiply(Number other)
     {
-        coefficient.multiply(n);
-        return this;
+        return new Term(coefficient.multiply(other), vars);
     }
 
-    public Term multiply(Variable v)
+    public Term multiply(Variable other)
     {
-        vars.add(v);
-        return this;
+        Set<Variable> variables = new LinkedHashSet<>();
+        boolean alreadyExists = false;
+        for (Variable v : vars)
+        {
+            if (v.equals(other))
+            {
+                variables.add(v.changePowerBy(other.degree));
+                alreadyExists = true;
+            }
+            else
+                variables.add(v);
+        }
+        if (!alreadyExists)
+            variables.add(other);
+
+        return new Term(coefficient, variables);
     }
+
+    public Term abs() { return new Term(coefficient.abs(), vars); }
 
     /**
      * Two terms are considered similar if they contain the same variables with the same degrees
@@ -54,13 +73,7 @@ public class Term
      */
     public boolean isSimilar(Term term)
     {
-        return term.vars.equals(vars);
-    }
-
-    // TODO: Actually simplify once we support variables
-    public Term simplify()
-    {
-        return this;
+        return vars.equals(term.vars);
     }
 
     public boolean isZero()

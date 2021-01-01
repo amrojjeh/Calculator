@@ -1,18 +1,25 @@
 package io.github.dinglydo.evaluator;
 
+import io.github.dinglydo.evaluator.expressions.AdditionExpression;
+
 public class Main
 {
     public static void main(String[] args)
     {
-        Calculator c = new Calculator();
+        AdditionExpression c = new AdditionExpression();
         c.add(new Term(0));
         c.add(new Term(5));
         c.add(new Term(10));
+        c.subtract(new Term(5));
 
-        // 5x
-        Term t4 = new Term(5);
-        t4.multiply(new Variable('x'));
+        Term t4 = new Term(5, 'x');
         c.add(t4);
+
+        Term t5 = new Term(10, 'x');
+        c.add(t5);
+
+        Term t6 = new Term(25, 'y', 'x');
+        c.add(t6);
 
         System.out.println(c.toString());
 

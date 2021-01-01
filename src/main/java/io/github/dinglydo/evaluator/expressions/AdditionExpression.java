@@ -1,13 +1,17 @@
-package io.github.dinglydo.evaluator;
+package io.github.dinglydo.evaluator.expressions;
+
+import io.github.dinglydo.evaluator.Number;
+import io.github.dinglydo.evaluator.SimilarTerms;
+import io.github.dinglydo.evaluator.Term;
 
 import java.util.Stack;
 import java.util.ArrayList;
 
-public class Calculator
+public class AdditionExpression
 {
     Stack<Term> terms;
 
-    public Calculator()
+    public AdditionExpression()
     {
         terms = new Stack<>();
     }
@@ -57,7 +61,7 @@ public class Calculator
         {
             if (term.isPositive()) builder.append("+ ");
             else builder.append("- ");
-            builder.append(term.toString()).append(" ");
+            builder.append(term.abs().toString()).append(" ");
         }
         return builder.toString();
     }

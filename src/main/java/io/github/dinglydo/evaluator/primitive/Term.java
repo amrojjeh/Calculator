@@ -1,4 +1,4 @@
-package io.github.dinglydo.evaluator;
+package io.github.dinglydo.evaluator.primitive;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -36,21 +36,25 @@ public class Term
     public Term add(Term term)
     {
         if (coefficient.isZero()) return term;
+        if (!isSimilar(term))
+            throw new IllegalArgumentException(String.format("Could not add terms %s + %s. They're dissimilar.", this.toString(), term.toString()));
         return new Term(coefficient.add(term.coefficient), vars);
     }
 
-    public Term multiply(Number other)
-    {
-        return new Term(coefficient.multiply(other), vars);
-    }
+    public Term multiply(double other) { return multiply(new Number(other)); }
 
+    public Term multiply(Number other) { return new Term(coefficient.multiply(other), vars); }
+
+    public Term multiply(char other) { return multiply(new Variable(other)); }
+
+    // TODO: Check if a degree becomes 0, as the variable should be removed
     public Term multiply(Variable other)
     {
         Set<Variable> variables = new LinkedHashSet<>();
         boolean alreadyExists = false;
         for (Variable v : vars)
         {
-            if (v.equals(other))
+            if (v.letter == other.letter)
             {
                 variables.add(v.changePowerBy(other.degree));
                 alreadyExists = true;
@@ -64,7 +68,17 @@ public class Term
         return new Term(coefficient, variables);
     }
 
+    public Term multiply(Term other)
+    {
+        Term result = other.multiply(coefficient);
+        for (Variable v : vars)
+            result = result.multiply(v);
+        return result;
+    }
+
     public Term abs() { return new Term(coefficient.abs(), vars); }
+
+    public Term negate() { return new Term(coefficient.negate(), vars); }
 
     /**
      * Two terms are considered similar if they contain the same variables with the same degrees

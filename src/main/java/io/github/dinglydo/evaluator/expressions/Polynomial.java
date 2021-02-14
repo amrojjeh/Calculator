@@ -50,6 +50,13 @@ public class Polynomial
         return new Polynomial(list);
     }
 
+    public Polynomial add(Polynomial other)
+    {
+        LinkedList<Term> list = new LinkedList<>(terms);
+        list.addAll(other.terms);
+        return new Polynomial(list);
+    }
+
     /**
      * Returns a new polynomial with the added but negated term. Does not modify this instance
      * @param term Term term

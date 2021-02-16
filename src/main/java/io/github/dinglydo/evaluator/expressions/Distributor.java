@@ -8,9 +8,9 @@ import java.util.List;
 /**
  * A distributor object can distribute a term to a polynomial
  */
-public class Distributor
+public class Distributor implements Expression
 {
-    public final Polynomial polynomial;
+    public final Expression expression;
     public final Term term;
 
     /**
@@ -18,9 +18,9 @@ public class Distributor
      * @param p Polynomial p
      * @param t Term t
      */
-    public Distributor(Polynomial p, Term t)
+    public Distributor(Expression p, Term t)
     {
-        polynomial = p;
+        expression = p;
         term = t;
     }
 
@@ -28,9 +28,10 @@ public class Distributor
      * Simplifies the polynomial and distributes the term, in that order.
      * @return The simplified polynomial
      */
+    @Override
     public Polynomial simplify()
     {
-        Polynomial simplified = polynomial.simplify();
+        Polynomial simplified = expression.simplify();
         List<Term> terms = simplified.terms.stream().map(t -> t.multiply(term)).collect(Collectors.toList());
         return new Polynomial(terms);
     }

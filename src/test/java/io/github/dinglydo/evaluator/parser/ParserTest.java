@@ -29,10 +29,9 @@ class ParserTest
     @Test
     public void polynomialEvaluation()
     {
-        String input = "-2 + 5 + 20 -5.5";
+        String input = "-2 + 5 + 20 + -5.5";
         try {
-            Polynomial p = Parser.parse(Lexer.lex(input)).getPolynomial();
-            Polynomial result = p.simplify();
+            Polynomial result = Parser.parse(Lexer.lex(input)).simplify();
             assertEquals("+ 17.5 ", result.toString());
         } catch (ParseException ignored) {
 

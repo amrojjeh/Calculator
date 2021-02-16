@@ -1,10 +1,8 @@
 package io.github.dinglydo.evaluator;
 
-import io.github.dinglydo.evaluator.expressions.Distributor;
 import io.github.dinglydo.evaluator.expressions.Polynomial;
 import io.github.dinglydo.evaluator.lexer.Lexer;
 import io.github.dinglydo.evaluator.parser.Parser;
-import io.github.dinglydo.evaluator.primitive.Term;
 
 import java.text.ParseException;
 import java.util.Scanner;
@@ -23,8 +21,8 @@ public class Main
                 running = false;
             else {
                 try {
-                    Polynomial p = Parser.parse(Lexer.lex(input)).getPolynomial();
-                    System.out.println(p.simplify());
+                    Polynomial p = Parser.parse(Lexer.lex(input)).simplify();
+                    System.out.println(p.toString());
                 } catch (ParseException e) {
                     System.out.println("Couldn't parse input. " + e.toString());
                 }

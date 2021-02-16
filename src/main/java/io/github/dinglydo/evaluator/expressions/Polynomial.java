@@ -4,15 +4,13 @@ import io.github.dinglydo.evaluator.expressions.util.SimilarTerms;
 import io.github.dinglydo.evaluator.primitive.Term;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.LinkedList;
-import java.util.Collections;
+import java.util.*;
 
 /**
  * A summation of {@code Term}s. It's capable of merging similar terms through {@code simplify}, and is immutable.
+ * All simplifications should result in a polynomial.
  */
-public class Polynomial
+public class Polynomial implements Expression
 {
     public final List<Term> terms;
 
@@ -22,11 +20,7 @@ public class Polynomial
      */
     public Polynomial(Term... termsToAdd)
     {
-        LinkedList<Term> list = new LinkedList<>();
-        for (Term t : termsToAdd)
-            list.push(t);
-
-        terms = Collections.unmodifiableList(list);
+        this(Arrays.asList(termsToAdd));
     }
 
     /**
@@ -71,6 +65,7 @@ public class Polynomial
      * Simplifies the polynomial by adding all similar terms.
      * @return The resulting polynomial
      */
+    @Override
     public Polynomial simplify()
     {
         ArrayList<SimilarTerms> listOfSimilarTerms = new ArrayList<>();

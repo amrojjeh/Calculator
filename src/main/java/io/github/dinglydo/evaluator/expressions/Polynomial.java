@@ -101,6 +101,9 @@ public class Polynomial implements Expression
     @Override
     public String toString()
     {
+        if (terms.size() == 0)
+            return Term.ZERO.toString();
+
         StringBuilder builder = new StringBuilder();
         for (Term term : terms)
         {

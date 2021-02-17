@@ -10,6 +10,10 @@ import java.util.Set;
 
 public class Term implements Expression
 {
+    public static Term ZERO = new Term(0);
+    public static Term UNIT = new Term(1);
+    public static Term NUNIT = new Term(-1);
+
     public final Number coefficient;
 
     // If vars is empty, it's assumed to be x^0
@@ -50,7 +54,11 @@ public class Term implements Expression
 
     public Term multiply(double other) { return multiply(new Number(other)); }
 
-    public Term multiply(Number other) { return new Term(coefficient.multiply(other), vars); }
+    public Term multiply(Number other)
+    {
+        if (other.isZero()) return ZERO;
+        return new Term(coefficient.multiply(other), vars);
+    }
 
     public Term multiply(char other) { return multiply(new Variable(other)); }
 

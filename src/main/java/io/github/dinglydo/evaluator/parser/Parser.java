@@ -39,7 +39,7 @@ public class Parser
                 Token t = tokens.pop();
                 if (t.value.equals("+"))
                     yield term(tokens);
-                yield new Distributor(term(tokens), new Term(-1));
+                yield new Distributor(term(tokens), Term.NUNIT);
             }
             case TERMINATE -> throw new LLParseException("String terminated early. Was expecting a term.", tokens.pop());
             default -> term(tokens);
@@ -63,7 +63,7 @@ public class Parser
                 Token t = tokens.pop();
                 if (t.value.equals("+"))
                     yield factor(tokens);
-                yield new Distributor(factor(tokens), new Term(-1));
+                yield new Distributor(factor(tokens), Term.NUNIT);
             }
             case TERMINATE -> throw new LLParseException("Was expecting a number or variable.", tokens.pop());
             default -> factor(tokens);
@@ -129,7 +129,7 @@ public class Parser
         if (lookahead == TokenType.PLUSMINUS)
         {
             Token t = tokens.pop();
-            result = result.add(new Distributor(signedTerm(tokens), new Term(t.value.equals("+") ? 1 : -1)));
+            result = result.add(new Distributor(signedTerm(tokens), t.value.equals("+") ? Term.UNIT : Term.NUNIT));
             return sumOp(tokens, result);
         }
 

@@ -1,6 +1,6 @@
 package io.github.dinglydo.evaluator.expressions.util;
 
-import io.github.dinglydo.evaluator.primitive.Term;
+import io.github.dinglydo.evaluator.expressions.Term;
 
 import java.util.ArrayList;
 

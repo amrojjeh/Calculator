@@ -1,12 +1,14 @@
-package io.github.dinglydo.evaluator.primitive;
+package io.github.dinglydo.evaluator.expressions;
 
+import io.github.dinglydo.evaluator.primitive.Number;
+import io.github.dinglydo.evaluator.primitive.Variable;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class Term
+public class Term implements Expression
 {
     public final Number coefficient;
 
@@ -19,12 +21,17 @@ public class Term
         vars = Collections.unmodifiableSet(variables);
     }
 
-    public Term(double n, char... variables)
+    public Term(double n)
+    {
+        this(n, "");
+    }
+
+    public Term(double n, String variables)
     {
         coefficient = new Number(n);
-        Variable[] temp = new Variable[variables.length];
+        Variable[] temp = new Variable[variables.length()];
         for (int i = 0; i < temp.length; ++i)
-            temp[i] = new Variable(variables[i]);
+            temp[i] = new Variable(variables.charAt(i));
         this.vars = Set.of(temp);
     }
 
@@ -112,5 +119,11 @@ public class Term
         for (Variable v : vars)
             builder.append(v.toString());
         return builder.toString();
+    }
+
+    @Override
+    public Polynomial simplify()
+    {
+        return new Polynomial(this);
     }
 }

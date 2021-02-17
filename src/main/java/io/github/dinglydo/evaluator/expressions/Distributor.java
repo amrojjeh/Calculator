@@ -1,27 +1,47 @@
 package io.github.dinglydo.evaluator.expressions;
 
-import io.github.dinglydo.evaluator.primitive.Term;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.stream.Collectors;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
- * A distributor object can distribute a term to a polynomial
+ * A series of expressions multiplying each other
  */
 public class Distributor implements Expression
 {
-    public final Expression expression;
-    public final Term term;
+    public final List<Expression> expressions;
 
     /**
-     * Constructs a Distributor object where Term t is distributed to Polynomial p
-     * @param p Polynomial p
-     * @param t Term t
+     * Constructs a Distributor object that multiplies a sequence of {@code Expression}s
+     * @param expressionsToMultiply Expressions to be multiplied
      */
-    public Distributor(Expression p, Term t)
+    public Distributor(Expression... expressionsToMultiply)
     {
-        expression = p;
-        term = t;
+        this(Arrays.asList(expressionsToMultiply));
+    }
+
+    /**
+     * Constructs a Distributor object that multiplies a sequence of {@code Expression}s
+     * @param expressionsToMultiply Expressions to be multiplied
+     */
+    public Distributor(@NotNull List<Expression> expressionsToMultiply)
+    {
+        expressions = Collections.unmodifiableList(expressionsToMultiply);
+    }
+
+    /**
+     * Multiplies the distribution by another Term. {@code 2(2 + 2).multiply(2) -> 4(2 +2 )}
+     * @param t the other Term
+     * @return the resulting distribution
+     */
+    public Distributor multiply(Expression e)
+    {
+        LinkedList<Expression> list = new LinkedList<>(expressions);
+        list.add(e);
+        return new Distributor(list);
     }
 
     /**
@@ -31,8 +51,29 @@ public class Distributor implements Expression
     @Override
     public Polynomial simplify()
     {
-        Polynomial simplified = expression.simplify();
-        List<Term> terms = simplified.terms.stream().map(t -> t.multiply(term)).collect(Collectors.toList());
-        return new Polynomial(terms);
+        Polynomial result = null;
+
+        for (Expression e : expressions)
+            if (result == null)
+                result = e.simplify();
+            else
+                result = distributePolynomial(result, e.simplify());
+
+        return result;
+    }
+
+    /**
+     * Assumes both are simplified
+     * @param p1
+     * @param p2
+     * @return Returns the distribution
+     */
+    private Polynomial distributePolynomial(Polynomial p1, Polynomial p2)
+    {
+        Polynomial result = new Polynomial();
+        for (Term f1 : p2.terms)
+            for (Term f2 : p1.terms)
+                result = result.add(f2.multiply(f1));
+        return result;
     }
 }

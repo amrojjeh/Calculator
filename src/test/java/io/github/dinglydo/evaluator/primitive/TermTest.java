@@ -1,5 +1,6 @@
 package io.github.dinglydo.evaluator.primitive;
 
+import io.github.dinglydo.evaluator.expressions.Term;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;

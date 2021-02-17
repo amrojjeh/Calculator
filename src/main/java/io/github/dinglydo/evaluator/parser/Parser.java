@@ -3,29 +3,35 @@ package io.github.dinglydo.evaluator.parser;
 import io.github.dinglydo.evaluator.expressions.*;
 import io.github.dinglydo.evaluator.lexer.Token;
 import io.github.dinglydo.evaluator.lexer.TokenType;
-import io.github.dinglydo.evaluator.primitive.Term;
+import io.github.dinglydo.evaluator.expressions.Term;
 import org.jetbrains.annotations.NotNull;
 
-import java.text.ParseException;
 import java.util.LinkedList;
 
 public class Parser
 {
-    public static Expression parse(LinkedList<Token> tokens) throws ParseException
+    public static Expression parse(LinkedList<Token> tokens) throws LLParseException
     {
-        return expression(tokens);
+        Expression result = expression(tokens);
+        if (lookahead(tokens) != TokenType.TERMINATE)
+        {
+            Token t = tokens.pop();
+            throw new LLParseException("Character (" + t.value + ") could not be parsed", t);
+        }
+        return result;
     }
 
-    private static Expression expression(LinkedList<Token> tokens) throws ParseException
+    private static Expression expression(LinkedList<Token> tokens) throws LLParseException
     {
         // expression -> signed_term sum_op
         ExpressionSum result = new ExpressionSum(signedTerm(tokens));
         return sumOp(tokens, result);
     }
 
-    private static Expression signedTerm(LinkedList<Token> tokens) throws ParseException
+    private static Expression signedTerm(LinkedList<Token> tokens) throws LLParseException
     {
         // signed_term -> PLUSMINUS term
+        // signed_term -> term
         TokenType lookahead = lookahead(tokens);
 
         return switch (lookahead) {
@@ -33,30 +39,81 @@ public class Parser
                 Token t = tokens.pop();
                 if (t.value.equals("+"))
                     yield term(tokens);
-                else
-                    yield new Distributor(term(tokens), new Term(-1));
+                yield new Distributor(term(tokens), new Term(-1));
             }
-            case TERMINATE -> throw new ParseException("String terminated early. Was expecting a term.", tokens.pop().start);
+            case TERMINATE -> throw new LLParseException("String terminated early. Was expecting a term.", tokens.pop());
             default -> term(tokens);
         };
     }
 
-    private static Expression term(LinkedList<Token> tokens) throws ParseException
+    private static Expression term(LinkedList<Token> tokens) throws LLParseException
     {
-        // term -> NUMBER term_op
-        TokenType lookahead = lookahead(tokens);
-        if (lookahead == TokenType.NUMBER)
-        {
-            Token t = tokens.pop();
-            double val = Double.parseDouble(t.value);
-            Expression e = new Polynomial(new Term(val));
-            return e;
-        }
-
-        throw new ParseException("Expected number.", tokens.pop().start);
+        // term -> signed_factor term_op
+        return termOp(tokens, signedFactor(tokens));
     }
 
-    private static Expression sumOp(@NotNull LinkedList<Token> tokens, Expression e) throws ParseException
+    private static Expression signedFactor(LinkedList<Token> tokens) throws LLParseException
+    {
+        // signed_factor -> PLUSMINUS factor
+        // signed_factor -> factor
+        TokenType lookahead = lookahead(tokens);
+
+        return switch (lookahead) {
+            case PLUSMINUS -> {
+                Token t = tokens.pop();
+                if (t.value.equals("+"))
+                    yield factor(tokens);
+                yield new Distributor(factor(tokens), new Term(-1));
+            }
+            case TERMINATE -> throw new LLParseException("Was expecting a number or variable.", tokens.pop());
+            default -> factor(tokens);
+        };
+    }
+
+    private static Expression factor(LinkedList<Token> tokens) throws LLParseException
+    {
+        // factor -> NUMBER
+        // factor -> VARIABLES
+        TokenType lookahead = lookahead(tokens);
+        return switch (lookahead) {
+            case NUMBER -> new Term(Double.parseDouble(tokens.pop().value));
+            case VARIABLE -> new Term(1, tokens.pop().value);
+            default -> throw new LLParseException("Was expecting a number or variable.", tokens.pop());
+        };
+    }
+
+    private static Expression termOp(LinkedList<Token> tokens, Expression e) throws LLParseException
+    {
+        // term_op -> MULTDIV signed_factor term_op
+        // term_op -> VARIABLE term_op
+        // term_op -> TERMINATE
+        TokenType lookahead = lookahead(tokens);
+
+        if (lookahead == TokenType.MULTDIV)
+        {
+            Token t = tokens.pop();
+            if (t.value.equals("*"))
+                if (e instanceof Distributor)
+                    return termOp(tokens, ((Distributor) e).multiply(signedFactor(tokens)));
+                else
+                    return termOp(tokens, new Distributor(e, signedFactor(tokens)));
+            // TODO: Add support for fractions
+            throw new LLParseException("Division is not supported yet.", t);
+        }
+
+        else if (lookahead == TokenType.VARIABLE)
+        {
+            Token t = tokens.pop();
+            if (e instanceof Distributor)
+                return termOp(tokens, ((Distributor) e).multiply(new Term(1, t.value)));
+            else
+                return termOp(tokens, new Distributor(e, new Term(1, t.value)));
+        }
+
+        return e;
+    }
+
+    private static Expression sumOp(@NotNull LinkedList<Token> tokens, Expression e) throws LLParseException
     {
         // sum_op -> PLUSMINUS term
         // sum_op -> TERMINATE
@@ -69,16 +126,14 @@ public class Parser
         else
             result = new ExpressionSum(e);
 
-        return switch (lookahead)
+        if (lookahead == TokenType.PLUSMINUS)
         {
-            case TERMINATE -> result;
-            case PLUSMINUS -> {
-                Token t = tokens.pop();
-                result = result.add(new Distributor(signedTerm(tokens), new Term(t.value.equals("+") ? 1 : -1)));
-                yield sumOp(tokens, result);
-            }
-            default -> throw new ParseException("Was expecting an end or another sum.", tokens.pop().start);
-        };
+            Token t = tokens.pop();
+            result = result.add(new Distributor(signedTerm(tokens), new Term(t.value.equals("+") ? 1 : -1)));
+            return sumOp(tokens, result);
+        }
+
+        return result;
     }
 
     @NotNull

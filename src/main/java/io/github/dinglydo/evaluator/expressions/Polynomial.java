@@ -1,7 +1,6 @@
 package io.github.dinglydo.evaluator.expressions;
 
 import io.github.dinglydo.evaluator.expressions.util.SimilarTerms;
-import io.github.dinglydo.evaluator.primitive.Term;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;

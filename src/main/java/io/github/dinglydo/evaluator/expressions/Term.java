@@ -62,7 +62,6 @@ public class Term implements Expression
 
     public Term multiply(char other) { return multiply(new Variable(other)); }
 
-    // TODO: Check if a degree becomes 0, as the variable should be removed
     public Term multiply(Variable other)
     {
         Set<Variable> variables = new LinkedHashSet<>();

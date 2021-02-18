@@ -8,7 +8,6 @@ public class Variable
 {
     public final char letter;
 
-    // TODO: Support negative exponent operations
     // TODO: Make fraction once that's supported
     public final int degree;
 
@@ -56,6 +55,12 @@ public class Variable
      * @return The resulting variable
      */
     public Variable changePowerBy(int n) { return new Variable(letter, degree + n); }
+
+    @Override
+    public int hashCode()
+    {
+        return letter;
+    }
 
     @Override
     public String toString()

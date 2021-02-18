@@ -1,9 +1,10 @@
 package io.github.dinglydo.evaluator.expressions;
 
-import io.github.dinglydo.evaluator.expressions.util.SimilarTerms;
+import io.github.dinglydo.evaluator.primitive.Number;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * A summation of {@code Term}s. It's capable of merging similar terms through {@code simplify}, and is immutable.
@@ -67,29 +68,12 @@ public class Polynomial implements Expression
     @Override
     public Polynomial simplify()
     {
-        ArrayList<SimilarTerms> listOfSimilarTerms = new ArrayList<>();
-        LinkedList<Term> result = new LinkedList<>();
-
-        for (Term term : terms)
-        {
-            boolean foundMatch = false;
-            for (SimilarTerms similarTerm : listOfSimilarTerms)
-            {
-                if (similarTerm.isSimilar(term))
-                {
-                    foundMatch = true;
-                    similarTerm.terms.add(term);
-                    break;
-                }
-            }
-            if (!foundMatch) listOfSimilarTerms.add(new SimilarTerms(term));
-        }
-
-        for (SimilarTerms similarTerm : listOfSimilarTerms)
-        {
-            Term term = similarTerm.simplify();
-            if (!term.isZero()) result.add(term);
-        }
+        List<Term> result = terms.stream()
+                .collect(Collectors.toMap(term -> term.vars, term -> term.coefficient, Number::add))
+                .entrySet()
+                .stream()
+                .map(k -> new Term(k.getValue(), k.getKey()))
+                .collect(Collectors.toList());
 
         return new Polynomial(result);
     }

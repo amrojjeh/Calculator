@@ -9,7 +9,11 @@ import java.util.Scanner;
 
 public class Main
 {
-    static Scanner scanner = new Scanner(System.in);
+    private static final Scanner scanner = new Scanner(System.in);
+    private static final String BOLD = "\033[1m";
+    private static final String FAIL = "\033[91m";
+    private static final String ENDC = "\033[0m";
+
 
     public static void main(String[] args)
     {
@@ -24,7 +28,7 @@ public class Main
                     Polynomial p = Parser.parse(Lexer.lex(input)).simplify();
                     System.out.println(p.toString());
                 } catch (LLParseException e) {
-                    System.out.println("Couldn't parse input.");
+                    System.out.printf("%sCouldn't parse input.%s%n", FAIL + BOLD, ENDC);
                     System.out.println(input);
                     int diff = e.getToken().end - 1 - e.getToken().start;
                     if (diff > 0)

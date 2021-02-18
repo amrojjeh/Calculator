@@ -104,6 +104,13 @@ public class Number
     /**
      * @return The string version of this object
      */
+
+    @Override
+    public int hashCode()
+    {
+        return Double.hashCode(num);
+    }
+
     @Override
     public String toString() { return num + ""; }
 }

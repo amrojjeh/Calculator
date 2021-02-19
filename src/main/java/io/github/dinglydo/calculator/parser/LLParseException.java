@@ -1,6 +1,6 @@
-package io.github.dinglydo.evaluator.parser;
+package io.github.dinglydo.calculator.parser;
 
-import io.github.dinglydo.evaluator.lexer.Token;
+import io.github.dinglydo.calculator.lexer.Token;
 
 import java.text.ParseException;
 

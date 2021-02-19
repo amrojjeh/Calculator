@@ -1,42 +1,46 @@
-package io.github.dinglydo.evaluator.expressions;
+package io.github.dinglydo.calculator.primitive;
 
-import io.github.dinglydo.evaluator.primitive.Number;
-import io.github.dinglydo.evaluator.primitive.Variable;
+import io.github.dinglydo.calculator.expressions.Polynomial;
 import org.jetbrains.annotations.NotNull;
 
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-public class Term implements Expression
+public class Term
 {
-    public static Term ZERO = new Term(0);
-    public static Term UNIT = new Term(1);
-    public static Term NUNIT = new Term(-1);
+    public static Term ZERO = new Term("0");
+    public static Term UNIT = new Term("1");
+    public static Term NUNIT = new Term("-1");
 
-    public final Number coefficient;
+    public final BigDecimal coefficient;
 
     // If vars is empty, it's assumed to be x^0
     public final Set<Variable> vars;
 
-    public Term(@NotNull Number number, @NotNull Set<Variable> variables)
+    public Term(@NotNull BigDecimal number, @NotNull Set<Variable> variables)
     {
         coefficient = number;
         vars = Collections.unmodifiableSet(variables);
     }
 
-    public Term(double n)
+    public Term(String n)
     {
         this(n, "");
     }
 
-    public Term(double n, String variables)
+    public Term(String n, String variables)
     {
-        coefficient = new Number(n);
-        Variable[] temp = new Variable[variables.length()];
-        for (int i = 0; i < temp.length; ++i)
-            temp[i] = new Variable(variables.charAt(i));
-        this.vars = Set.of(temp);
+        coefficient = new BigDecimal(n);
+        vars = variables.chars()
+                .mapToObj(i -> (char)i)
+                .collect(Collectors.toMap(c -> c, c -> new BigDecimal(1), (v0, v1) -> v0.add(BigDecimal.ONE)))
+                .entrySet()
+                .stream()
+                .map(e -> new Variable(e.getKey(), e.getValue()))
+                .collect(Collectors.toUnmodifiableSet());
     }
 
     /**
@@ -46,17 +50,17 @@ public class Term implements Expression
      */
     public Term add(Term term)
     {
-        if (coefficient.isZero()) return term;
+        if (coefficient.compareTo(BigDecimal.ZERO) == 0) return term;
         if (!isSimilar(term))
             throw new IllegalArgumentException(String.format("Could not add terms %s + %s. They're dissimilar.", this.toString(), term.toString()));
         return new Term(coefficient.add(term.coefficient), vars);
     }
 
-    public Term multiply(double other) { return multiply(new Number(other)); }
+    public Term multiply(double other) { return multiply(new BigDecimal(other)); }
 
-    public Term multiply(Number other)
+    public Term multiply(BigDecimal other)
     {
-        if (other.isZero()) return ZERO;
+        if (other.compareTo(BigDecimal.ZERO) == 0) return ZERO;
         return new Term(coefficient.multiply(other), vars);
     }
 
@@ -106,17 +110,30 @@ public class Term implements Expression
 
     public boolean isZero()
     {
-        return coefficient.isZero();
+        return coefficient.compareTo(BigDecimal.ZERO) == 0;
     }
 
     public boolean isPositive()
     {
-        return coefficient.isPositive();
+        return coefficient.compareTo(BigDecimal.ZERO) > 0;
     }
 
     public boolean isNegative()
     {
-        return coefficient.isNegative();
+        return coefficient.compareTo(BigDecimal.ZERO) < 0;
+    }
+
+    @Override
+    public boolean equals(Object other)
+    {
+        if (other instanceof Term)
+            return equals((Term)other);
+        return false;
+    }
+
+    public boolean equals(Term other)
+    {
+        return coefficient.compareTo(other.coefficient) == 0 && vars.equals(other.vars);
     }
 
     @Override
@@ -128,8 +145,8 @@ public class Term implements Expression
         return builder.toString();
     }
 
-    @Override
-    public Polynomial simplify()
+
+    public Polynomial toPolynomial()
     {
         return new Polynomial(this);
     }

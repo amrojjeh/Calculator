@@ -1,9 +1,10 @@
-package io.github.dinglydo.evaluator;
+package io.github.dinglydo.calculator;
 
-import io.github.dinglydo.evaluator.expressions.Polynomial;
-import io.github.dinglydo.evaluator.lexer.Lexer;
-import io.github.dinglydo.evaluator.parser.LLParseException;
-import io.github.dinglydo.evaluator.parser.Parser;
+import io.github.dinglydo.calculator.expressions.Polynomial;
+import io.github.dinglydo.calculator.lexer.Lexer;
+import io.github.dinglydo.calculator.parser.LLParseException;
+import io.github.dinglydo.calculator.parser.Parser;
+import io.github.dinglydo.calculator.visitors.SimplifyVisitor;
 
 import java.util.Scanner;
 
@@ -25,7 +26,7 @@ public class Main
                 running = false;
             else {
                 try {
-                    Polynomial p = Parser.parse(Lexer.lex(input)).simplify();
+                    Polynomial p = SimplifyVisitor.simplify(Parser.parse(Lexer.lex(input)));
                     System.out.println(p.toString());
                 } catch (LLParseException e) {
                     System.out.printf("%sCouldn't parse input.%s%n", FAIL + BOLD, ENDC);

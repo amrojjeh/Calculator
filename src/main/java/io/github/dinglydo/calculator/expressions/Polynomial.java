@@ -1,10 +1,10 @@
-package io.github.dinglydo.evaluator.expressions;
+package io.github.dinglydo.calculator.expressions;
 
-import io.github.dinglydo.evaluator.primitive.Number;
+import io.github.dinglydo.calculator.primitive.Term;
+import io.github.dinglydo.calculator.visitors.ExpressionVisitor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * A summation of {@code Term}s. It's capable of merging similar terms through {@code simplify}, and is immutable.
@@ -35,7 +35,7 @@ public class Polynomial implements Expression
     /**
      * Returns a new polynomial with the added term. Does not modify this instance
      * @param term Term term
-     * @return The resulting polynomial
+     * @return The resulting polynomial. Does not simplify.
      */
     public Polynomial add(Term term)
     {
@@ -44,6 +44,11 @@ public class Polynomial implements Expression
         return new Polynomial(list);
     }
 
+    /**
+     * Returns a new polynomial with the added polynomials. Does not modify this instance.
+     * @param other Polynomial polynomial
+     * @return The resulting polynomial. Does not simplify.
+     */
     public Polynomial add(Polynomial other)
     {
         LinkedList<Term> list = new LinkedList<>(terms);
@@ -61,21 +66,17 @@ public class Polynomial implements Expression
         return add(term.negate());
     }
 
-    /**
-     * Simplifies the polynomial by adding all similar terms.
-     * @return The resulting polynomial
-     */
     @Override
-    public Polynomial simplify()
+    public boolean equals(Object other)
     {
-        List<Term> result = terms.stream()
-                .collect(Collectors.toMap(term -> term.vars, term -> term.coefficient, Number::add))
-                .entrySet()
-                .stream()
-                .map(k -> new Term(k.getValue(), k.getKey()))
-                .collect(Collectors.toList());
+        if (other instanceof Polynomial)
+            return equals((Polynomial) other);
+        return false;
+    }
 
-        return new Polynomial(result);
+    public boolean equals(Polynomial other)
+    {
+        return terms.equals(other.terms);
     }
 
     /**
@@ -96,5 +97,11 @@ public class Polynomial implements Expression
             builder.append(term.abs().toString()).append(" ");
         }
         return builder.toString();
+    }
+
+    @Override
+    public void accept(ExpressionVisitor visitor)
+    {
+        visitor.visit(this);
     }
 }

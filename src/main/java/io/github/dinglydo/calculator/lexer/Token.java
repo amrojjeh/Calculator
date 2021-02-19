@@ -1,4 +1,4 @@
-package io.github.dinglydo.evaluator.lexer;
+package io.github.dinglydo.calculator.lexer;
 
 public class Token
 {

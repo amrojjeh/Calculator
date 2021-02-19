@@ -1,13 +1,12 @@
-package io.github.dinglydo.evaluator.lexer;
+package io.github.dinglydo.calculator.lexer;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
 public enum TokenType
 {
-    NUMBER("\\d+(\\.\\d+)?"),
-    VARIABLE("\\w+"),
+    NUMBER("\\d+(\\.\\d+)?|(\\.\\d+)"),
+    VARIABLE("[A-z]+"),
     PLUSMINUS("[+-]"),
     MULTDIV("[*/]"),
     LPAREN("\\("),

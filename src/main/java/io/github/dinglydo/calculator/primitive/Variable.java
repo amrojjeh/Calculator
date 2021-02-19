@@ -1,4 +1,6 @@
-package io.github.dinglydo.evaluator.primitive;
+package io.github.dinglydo.calculator.primitive;
+
+import java.math.BigDecimal;
 
 /**
  * A mathematical variable. Stores the letter which represents the variable and the degree.
@@ -9,7 +11,7 @@ public class Variable
     public final char letter;
 
     // TODO: Make fraction once that's supported
-    public final int degree;
+    public final BigDecimal degree;
 
     /**
      * Constructs a variable such as 'x' or 'y' with a degree of 1
@@ -17,7 +19,7 @@ public class Variable
      */
     public Variable(char letter)
     {
-        this(letter, 1);
+        this(letter, new BigDecimal(1));
     }
 
     /**
@@ -26,6 +28,16 @@ public class Variable
      * @param degree An integer. Negative operations are not supported yet
      */
     public Variable(char letter, int degree)
+    {
+        this(letter, new BigDecimal(degree));
+    }
+
+    /**
+     * Constructs a variable such as 'x' or 'y' with the chose degree
+     * @param letter Must be a letter
+     * @param degree An integer. Negative operations are not supported yet
+     */
+    public Variable(char letter, BigDecimal degree)
     {
         this.degree = degree;
         if (Character.isAlphabetic(letter))
@@ -47,14 +59,14 @@ public class Variable
      * @param var The other variable
      * @return True if the degree and letter are the same
      */
-    public boolean equals(Variable var) { return var.letter == letter && var.degree == degree; }
+    public boolean equals(Variable var) { return var.letter == letter && var.degree.equals(degree); }
 
     /**
      * Return a new variable with the new power as changed by n
      * @param n The power to change by
      * @return The resulting variable
      */
-    public Variable changePowerBy(int n) { return new Variable(letter, degree + n); }
+    public Variable changePowerBy(BigDecimal n) { return new Variable(letter, degree.add(n)); }
 
     @Override
     public int hashCode()
@@ -65,8 +77,8 @@ public class Variable
     @Override
     public String toString()
     {
-        if (degree == 1)
+        if (degree.compareTo(BigDecimal.ONE) == 0)
             return String.format("%c", letter);
-        return String.format("%c^%d", letter, degree);
+        return String.format("(%c^%s)", letter, degree.toString());
     }
 }

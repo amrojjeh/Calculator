@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.github.dinglydo.</groupId>
-    <artifactId>evaluator</artifactId>
+    <artifactId>calculator</artifactId>
     <version>0.1-SNAPSHOT</version>
 
 
@@ -30,7 +30,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>io.github.dinglydo.evaluator.Main</mainClass>
+                            <mainClass>io.github.dinglydo.calculator.Main</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

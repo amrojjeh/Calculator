@@ -1,5 +1,6 @@
-package io.github.dinglydo.evaluator.expressions;
+package io.github.dinglydo.calculator.expressions;
 
+import io.github.dinglydo.calculator.visitors.ExpressionVisitor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -33,11 +34,8 @@ public class ExpressionSum implements Expression
     }
 
     @Override
-    public Polynomial simplify()
+    public void accept(ExpressionVisitor visitor)
     {
-        Polynomial result = new Polynomial();
-        for (Expression e : expressions)
-            result = result.add(e.simplify());
-        return result.simplify();
+        visitor.visit(this);
     }
 }

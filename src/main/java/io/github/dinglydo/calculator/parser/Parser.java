@@ -1,9 +1,9 @@
-package io.github.dinglydo.evaluator.parser;
+package io.github.dinglydo.calculator.parser;
 
-import io.github.dinglydo.evaluator.expressions.*;
-import io.github.dinglydo.evaluator.lexer.Token;
-import io.github.dinglydo.evaluator.lexer.TokenType;
-import io.github.dinglydo.evaluator.expressions.Term;
+import io.github.dinglydo.calculator.expressions.*;
+import io.github.dinglydo.calculator.lexer.Token;
+import io.github.dinglydo.calculator.lexer.TokenType;
+import io.github.dinglydo.calculator.primitive.Term;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.LinkedList;
@@ -39,7 +39,7 @@ public class Parser
                 Token t = tokens.pop();
                 if (t.value.equals("+"))
                     yield term(tokens);
-                yield new Distributor(term(tokens), Term.NUNIT);
+                yield new Factors(term(tokens), Term.NUNIT.toPolynomial());
             }
             case TERMINATE -> throw new LLParseException("String terminated early. Was expecting a term.", tokens.pop());
             default -> term(tokens);
@@ -63,7 +63,7 @@ public class Parser
                 Token t = tokens.pop();
                 if (t.value.equals("+"))
                     yield factor(tokens);
-                yield new Distributor(factor(tokens), Term.NUNIT);
+                yield new Factors(factor(tokens), Term.NUNIT.toPolynomial());
             }
             case TERMINATE -> throw new LLParseException("Was expecting a number or variable.", tokens.pop());
             default -> factor(tokens);
@@ -76,8 +76,8 @@ public class Parser
         // factor -> VARIABLES
         TokenType lookahead = lookahead(tokens);
         return switch (lookahead) {
-            case NUMBER -> new Term(Double.parseDouble(tokens.pop().value));
-            case VARIABLE -> new Term(1, tokens.pop().value);
+            case NUMBER -> new Term(tokens.pop().value).toPolynomial();
+            case VARIABLE -> new Term("1", tokens.pop().value).toPolynomial();
             default -> throw new LLParseException("Was expecting a number or variable.", tokens.pop());
         };
     }
@@ -93,10 +93,10 @@ public class Parser
         {
             Token t = tokens.pop();
             if (t.value.equals("*"))
-                if (e instanceof Distributor)
-                    return termOp(tokens, ((Distributor) e).multiply(signedFactor(tokens)));
+                if (e instanceof Factors)
+                    return termOp(tokens, ((Factors) e).multiply(signedFactor(tokens)));
                 else
-                    return termOp(tokens, new Distributor(e, signedFactor(tokens)));
+                    return termOp(tokens, new Factors(e, signedFactor(tokens)));
             // TODO: Add support for fractions
             throw new LLParseException("Division is not supported yet.", t);
         }
@@ -104,10 +104,10 @@ public class Parser
         else if (lookahead == TokenType.VARIABLE)
         {
             Token t = tokens.pop();
-            if (e instanceof Distributor)
-                return termOp(tokens, ((Distributor) e).multiply(new Term(1, t.value)));
+            if (e instanceof Factors)
+                return termOp(tokens, ((Factors) e).multiply(new Term("1", t.value).toPolynomial()));
             else
-                return termOp(tokens, new Distributor(e, new Term(1, t.value)));
+                return termOp(tokens, new Factors(e, new Term("1", t.value).toPolynomial()));
         }
 
         return e;
@@ -129,7 +129,7 @@ public class Parser
         if (lookahead == TokenType.PLUSMINUS)
         {
             Token t = tokens.pop();
-            result = result.add(new Distributor(signedTerm(tokens), t.value.equals("+") ? Term.UNIT : Term.NUNIT));
+            result = result.add(new Factors(signedTerm(tokens), t.value.equals("+") ? Term.UNIT.toPolynomial() : Term.NUNIT.toPolynomial()));
             return sumOp(tokens, result);
         }
 

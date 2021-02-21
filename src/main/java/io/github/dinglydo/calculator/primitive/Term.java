@@ -11,9 +11,9 @@ import java.util.stream.Collectors;
 
 public class Term
 {
-    public static Term ZERO = new Term("0");
-    public static Term UNIT = new Term("1");
-    public static Term NUNIT = new Term("-1");
+    public static Term ZERO = new Term("0", "");
+    public static Term UNIT = new Term("1", "");
+    public static Term NUNIT = new Term("-1", "");
 
     public final BigDecimal coefficient;
 
@@ -23,7 +23,10 @@ public class Term
     public Term(@NotNull BigDecimal number, @NotNull Set<Variable> variables)
     {
         coefficient = number;
-        vars = Collections.unmodifiableSet(variables);
+        if (coefficient.compareTo(BigDecimal.ZERO) == 0)
+            vars = Set.of();
+        else
+            vars = Collections.unmodifiableSet(variables);
     }
 
     public Term(String n)
@@ -34,13 +37,16 @@ public class Term
     public Term(String n, String variables)
     {
         coefficient = new BigDecimal(n);
-        vars = variables.chars()
-                .mapToObj(i -> (char)i)
-                .collect(Collectors.toMap(c -> c, c -> new BigDecimal(1), (v0, v1) -> v0.add(BigDecimal.ONE)))
-                .entrySet()
-                .stream()
-                .map(e -> new Variable(e.getKey(), e.getValue()))
-                .collect(Collectors.toUnmodifiableSet());
+        if (coefficient.compareTo(BigDecimal.ZERO) == 0)
+            vars = Set.of();
+        else
+            vars = variables.chars()
+                    .mapToObj(i -> (char)i)
+                    .collect(Collectors.toMap(c -> c, c -> new BigDecimal(1), (v0, v1) -> v0.add(BigDecimal.ONE)))
+                    .entrySet()
+                    .stream()
+                    .map(e -> new Variable(e.getKey(), e.getValue()))
+                    .collect(Collectors.toUnmodifiableSet());
     }
 
     /**
@@ -53,7 +59,11 @@ public class Term
         if (coefficient.compareTo(BigDecimal.ZERO) == 0) return term;
         if (!isSimilar(term))
             throw new IllegalArgumentException(String.format("Could not add terms %s + %s. They're dissimilar.", this.toString(), term.toString()));
-        return new Term(coefficient.add(term.coefficient), vars);
+        BigDecimal newCoefficient = coefficient.add(term.coefficient);
+        if (newCoefficient.compareTo(BigDecimal.ZERO) == 0)
+            return Term.ZERO;
+        else
+            return new Term(newCoefficient, vars);
     }
 
     public Term multiply(double other) { return multiply(new BigDecimal(other)); }
@@ -139,12 +149,11 @@ public class Term
     @Override
     public String toString()
     {
-        StringBuilder builder = new StringBuilder(coefficient.toString());
+        StringBuilder builder = new StringBuilder(coefficient.compareTo(BigDecimal.ONE) != 0 ? coefficient.toString() : "");
         for (Variable v : vars)
             builder.append(v.toString());
         return builder.toString();
     }
-
 
     public Polynomial toPolynomial()
     {

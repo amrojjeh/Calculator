@@ -33,6 +33,7 @@ public class SimplifyVisitor implements ExpressionVisitor
                 .entrySet()
                 .stream()
                 .map(k -> new Term(k.getValue(), k.getKey()))
+                .filter(t -> !t.isZero())
                 .collect(Collectors.toList());
 
         this.result = new Polynomial(terms);

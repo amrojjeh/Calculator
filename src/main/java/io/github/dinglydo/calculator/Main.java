@@ -29,13 +29,13 @@ public class Main
                     Polynomial p = SimplifyVisitor.simplify(Parser.parse(Lexer.lex(input)));
                     System.out.println(p.toString());
                 } catch (LLParseException e) {
-                    System.out.printf("%sCouldn't parse input.%s%n", FAIL + BOLD, ENDC);
+                    System.out.printf("%s%s.%s%n", FAIL + BOLD, e.getMessage(), ENDC);
                     System.out.println(input);
-                    int diff = e.getToken().end - 1 - e.getToken().start;
+                    int diff = e.end - 1 - e.start;
                     if (diff > 0)
-                        System.out.printf("%s^%s^%n", " ".repeat(e.getToken().start), "~".repeat(diff - 1));
+                        System.out.printf("%s^%s^%n", " ".repeat(e.start), "~".repeat(diff - 1));
                     else
-                        System.out.printf("%s^%n", " ".repeat(e.getToken().start));
+                        System.out.printf("%s^%n", " ".repeat(e.start));
                 }
             }
         }

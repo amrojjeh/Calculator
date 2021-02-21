@@ -16,7 +16,8 @@ class ParserTest
     @ParameterizedTest
     @ValueSource(strings = {"-2 + 5",
             "30 + 20 - 50",
-            "5x + 2x + 5 * 2"})
+            "5x + 2x + 5 * 2",
+            "5(3x + 2)(20x) - 2"})
     public void shouldParseSimpleExpressions(String input)
     {
         assertDoesNotThrow(() -> Parser.parse(Lexer.lex(input)));
@@ -32,7 +33,8 @@ class ParserTest
     @ParameterizedTest
     @ValueSource(strings = {"-2x + ",
             "+++2",
-            "5.x"})
+            "5.x",
+            "2x(5x + 2"})
     public void shouldNotParse(String input)
     {
         assertThrows(LLParseException.class, () -> Parser.parse(Lexer.lex(input)));

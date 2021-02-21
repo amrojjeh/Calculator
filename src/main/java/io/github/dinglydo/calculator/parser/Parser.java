@@ -10,13 +10,15 @@ import java.util.LinkedList;
 
 public class Parser
 {
+    private static Token TERMINATE_TOKEN = new Token(TokenType.TERMINATE, "", 0, 0);
+
     public static Expression parse(LinkedList<Token> tokens) throws LLParseException
     {
         Expression result = expression(tokens);
         if (lookahead(tokens) != TokenType.TERMINATE)
         {
             Token t = tokens.pop();
-            throw new LLParseException("Character (" + t.value + ") could not be parsed", t);
+            throw new LLParseException("Character (" + t.value + ") could not be parsed", t.kind, t.start, t.end);
         }
         return result;
     }
@@ -41,7 +43,7 @@ public class Parser
                     yield term(tokens);
                 yield new Factors(term(tokens), Term.NUNIT.toPolynomial());
             }
-            case TERMINATE -> throw new LLParseException("String terminated early. Was expecting a term.", tokens.pop());
+            case TERMINATE -> throw new LLParseException("String terminated early. Was expecting a term.", lookahead, 0, 0);
             default -> term(tokens);
         };
     }
@@ -65,7 +67,7 @@ public class Parser
                     yield factor(tokens);
                 yield new Factors(factor(tokens), Term.NUNIT.toPolynomial());
             }
-            case TERMINATE -> throw new LLParseException("Was expecting a number or variable.", tokens.pop());
+            case TERMINATE -> throw new LLParseException("Was expecting a number or variable.", lookahead, 0, 0);
             default -> factor(tokens);
         };
     }
@@ -74,11 +76,30 @@ public class Parser
     {
         // factor -> NUMBER
         // factor -> VARIABLES
-        TokenType lookahead = lookahead(tokens);
-        return switch (lookahead) {
+        // factor -> ( e )
+        TokenType lh = lookahead(tokens);
+        return switch (lh) {
             case NUMBER -> new Term(tokens.pop().value).toPolynomial();
             case VARIABLE -> new Term("1", tokens.pop().value).toPolynomial();
-            default -> throw new LLParseException("Was expecting a number or variable.", tokens.pop());
+            case LPAREN -> {
+                Token lParen = tokens.pop();
+                Expression result = expression(tokens);
+                lh = lookahead(tokens);
+                if (lh != TokenType.RPAREN)
+                {
+                    assert lParen != null;
+                    if (lh != TokenType.TERMINATE)
+                        throw new LLParseException("Expected matching parenthesis", lh, lParen.start, lParen.start);
+                    else
+                        throw new LLParseException("Expected matching parenthesis", lh, lParen.start, lParen.start);
+                }
+                else
+                {
+                        tokens.pop();
+                        yield result;
+                }
+            }
+            default -> throw new LLParseException("Was expecting a factor.", lh, 0, 0);
         };
     }
 
@@ -86,28 +107,42 @@ public class Parser
     {
         // term_op -> MULTDIV signed_factor term_op
         // term_op -> VARIABLE term_op
+        // term_op -> ( e ) term_op
         // term_op -> TERMINATE
         TokenType lookahead = lookahead(tokens);
 
-        if (lookahead == TokenType.MULTDIV)
+        switch (lookahead)
         {
-            Token t = tokens.pop();
-            if (t.value.equals("*"))
+            case MULTDIV -> {
+                Token t = tokens.pop();
+                if (t.value.equals("*"))
+                    if (e instanceof Factors)
+                        return termOp(tokens, ((Factors) e).multiply(signedFactor(tokens)));
+                    else
+                        return termOp(tokens, new Factors(e, signedFactor(tokens)));
+                // TODO: Add support for fractions
+                throw new LLParseException("Division is not supported yet.", lookahead, t.start, t.end);
+            }
+            case VARIABLE -> {
+                Token t = tokens.pop();
                 if (e instanceof Factors)
-                    return termOp(tokens, ((Factors) e).multiply(signedFactor(tokens)));
+                    return termOp(tokens, ((Factors) e).multiply(new Term("1", t.value).toPolynomial()));
                 else
-                    return termOp(tokens, new Factors(e, signedFactor(tokens)));
-            // TODO: Add support for fractions
-            throw new LLParseException("Division is not supported yet.", t);
-        }
+                    return termOp(tokens, new Factors(e, new Term("1", t.value).toPolynomial()));
+            }
+            case LPAREN -> {
+                Token t = tokens.pop();
+                Expression result = expression(tokens);
+                if (lookahead(tokens) == TokenType.RPAREN) tokens.pop();
+                else throw new LLParseException("Expected matching parenthesis", lookahead(tokens), t.start, t.end);
 
-        else if (lookahead == TokenType.VARIABLE)
-        {
-            Token t = tokens.pop();
-            if (e instanceof Factors)
-                return termOp(tokens, ((Factors) e).multiply(new Term("1", t.value).toPolynomial()));
-            else
-                return termOp(tokens, new Factors(e, new Term("1", t.value).toPolynomial()));
+                if (e instanceof Factors)
+                    return termOp(tokens, ((Factors) e).multiply(result));
+                else if (result instanceof Factors)
+                    return termOp(tokens, ((Factors) result).multiply(e));
+                else
+                    return termOp(tokens, new Factors(e, result));
+            }
         }
 
         return e;

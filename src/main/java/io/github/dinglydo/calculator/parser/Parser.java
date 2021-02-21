@@ -10,8 +10,6 @@ import java.util.LinkedList;
 
 public class Parser
 {
-    private static Token TERMINATE_TOKEN = new Token(TokenType.TERMINATE, "", 0, 0);
-
     public static Expression parse(LinkedList<Token> tokens) throws LLParseException
     {
         Expression result = expression(tokens);
